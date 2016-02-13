@@ -34,6 +34,7 @@ class CreateMemeViewController: UIViewController, UIImagePickerControllerDelegat
         
         cameraButton.enabled =  UIImagePickerController.isSourceTypeAvailable(UIImagePickerControllerSourceType.Camera)
         
+        //disable the share button if no image is in the view to share
         shareButton.enabled = selectedImage.image != nil
         
         // Set the text field delegates
@@ -41,9 +42,11 @@ class CreateMemeViewController: UIViewController, UIImagePickerControllerDelegat
         topTextField.delegate = self
         bottomTextField.delegate = self
         
+        // Remove the border from the text fields
         topTextField.borderStyle = UITextBorderStyle.None
         bottomTextField.borderStyle = UITextBorderStyle.None
         
+        // Create a dictionary of attributes to apply to the text fields
         
         let memeTextAttributes = [
             NSStrokeColorAttributeName : UIColor.blackColor(),
@@ -51,6 +54,8 @@ class CreateMemeViewController: UIViewController, UIImagePickerControllerDelegat
             NSFontAttributeName: UIFont(name: "HelveticaNeue-CondensedBlack", size: 40)!,
             NSStrokeWidthAttributeName: NSNumber(float: -3.0),
         ]
+        
+        // Set the attributes of the text field to the our desired style
         
         topTextField.defaultTextAttributes = memeTextAttributes
         bottomTextField.defaultTextAttributes = memeTextAttributes
@@ -60,10 +65,17 @@ class CreateMemeViewController: UIViewController, UIImagePickerControllerDelegat
         
         topTextField.text = "TOP"
         bottomTextField.text = "Bottom"
+        
+        // Set the nav and tool bar background color to match our theme
+        navbar.barTintColor = UIColorFromHex(0x61827B, alpha: 1.0)
+        
+        toolbar.barTintColor = UIColorFromHex(0x61827B, alpha: 1.0)
     
     }
     
     override func viewWillAppear(animated: Bool) {
+        
+        // Before the view appears subscribe to the keyboard notifications
         
         subscribeToKeyboardWillShowNotifications()
         
@@ -71,9 +83,15 @@ class CreateMemeViewController: UIViewController, UIImagePickerControllerDelegat
     }
     
     override func viewWillDisappear(animated: Bool) {
+        
+        // Before the view disappears unsuscribe to the keyboard notifications
+        
         unsubscribeFromKeyboardWilShowNotifications()
+        
         unsubscribeFromKeyboardWillHideNotifications()
+        
     }
+    
     // Responds to the camera button
 
     @IBAction func takeNewPicture(sender: AnyObject) {
@@ -88,12 +106,15 @@ class CreateMemeViewController: UIViewController, UIImagePickerControllerDelegat
         
     }
     
+    // Respond to cancel button
     
     @IBAction func cancelNewMeme(sender: AnyObject) {
+        
         self.dismissViewControllerAnimated(true, completion: nil)
+        
     }
     
-    
+    // Respond to share button
     @IBAction func shareNewMeme(sender: AnyObject) {
         
         let image = genereateMeme()
@@ -104,7 +125,12 @@ class CreateMemeViewController: UIViewController, UIImagePickerControllerDelegat
         
         activityController.completionWithItemsHandler = { activityType, completed, returnedItems, error in
             
-            self.save()
+            
+            if completed == true {
+                
+                self.save()
+                
+            }
             
             self.dismissViewControllerAnimated(true, completion: nil)
         }
@@ -237,8 +263,21 @@ class CreateMemeViewController: UIViewController, UIImagePickerControllerDelegat
         
         let meme = MemeObject(topText: topTextField.text!, bottomText: bottomTextField.text! , originalImage: self.selectedImage.image!, memedImage: self.genereateMeme())
         
-        memes.append(meme)
+        // Add meme to memes array in App delegate
+        let object = UIApplication.sharedApplication().delegate
+        
+        let appDelegate = object as! AppDelegate
+        
+        appDelegate.memes.append(meme)
        
+    }
+    
+    func UIColorFromHex(rgbValue:UInt32, alpha:Double=1.0)->UIColor {
+        let red = CGFloat((rgbValue & 0xFF0000) >> 16)/256.0
+        let green = CGFloat((rgbValue & 0xFF00) >> 8)/256.0
+        let blue = CGFloat(rgbValue & 0xFF)/256.0
+        
+        return UIColor(red:red, green:green, blue:blue, alpha:CGFloat(alpha))
     }
     
 }
